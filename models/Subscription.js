@@ -9,31 +9,15 @@ const subscriptionSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  service: {
-    type: String,
-    required: true,
-  },
-  price: {
-    type: String,
-    required: true,
-  },
-  quantity: {
-    type: String,
-    required: true,
-  },
-  discount: {
-    type: String,
-    required: true,
-  },
-  itemName: {
-    type: String,
-    required: true,
-  },
-  description: {
-    type: String,
+  items: {
+    type: Array,
     required: true,
   },
   message: {
+    type: String,
+    required: true,
+  },
+  clientId: {
     type: String,
     required: true,
   },

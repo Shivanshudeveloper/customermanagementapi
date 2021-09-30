@@ -37,6 +37,14 @@ const invoiceSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  clientId: {
+    type: String,
+    required: true,
+  },
+  serviceId: {
+    type: String,
+    required: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

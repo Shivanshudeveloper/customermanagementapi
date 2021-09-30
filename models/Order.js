@@ -9,6 +9,22 @@ const orderSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  serviceId: {
+    type: String,
+    required: true,
+  },
+  clientId: {
+    type: String,
+    required: true,
+  },
+  status: {
+    type: String,
+    required: true,
+  },
+  userMessage: {
+    type: String,
+    required: false,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
