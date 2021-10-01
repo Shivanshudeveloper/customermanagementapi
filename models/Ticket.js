@@ -5,6 +5,14 @@ const ticketSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  toEmail: {
+    type: String,
+    required: true,
+  },
+  toId: {
+    type: String,
+    required: true,
+  },
   cc: {
     type: String,
     required: true,
@@ -16,6 +24,10 @@ const ticketSchema = new mongoose.Schema({
   message: {
     type: String,
     required: true,
+  },
+  tags: {
+    type: Array,
+    required: false,
   },
   createdAt: {
     type: Date,

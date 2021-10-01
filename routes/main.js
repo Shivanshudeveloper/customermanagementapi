@@ -6,19 +6,50 @@ const stripe = require("stripe")(
 const { v4: uuidv4 } = require("uuid");
 // Getting Module
 
+const User_Model = require("../models/Users");
 const Service_Model = require("../models/Services");
 const Client_Model = require("../models/Client");
 const Ticket_Model = require("../models/Ticket");
 const Order_Model = require("../models/Order");
 const Invoice_Model = require("../models/Invoice");
 const Subscription_Model = require("../models/Subscription");
-const Tag_Model = require("../models/Tag");
+const TagOrders_Model = require("../models/TagOrders");
+const TagTickets_Model = require("../models/TagTickets");
 
 // TEST
 // @GET TEST
 // GET
 router.get("/test", (req, res) => {
   res.send("Working");
+});
+
+//--------------
+//USER
+//--------------
+
+router.post("/register", async (req, res) => {
+  const userData = req.body;
+  const newUser = new User_Model(userData);
+  const email = userData.email;
+  const emailCount = await User_Model.countDocuments({ email });
+  if (emailCount > 0) res.status(404).json({ message: "Email already exists" });
+  else {
+    try {
+      await newUser.save();
+      res.status(200).json({ message: "Service Added" });
+    } catch (error) {
+      res.status(404).json({ message: "Something went wrong" });
+    }
+  }
+});
+router.get("/checkuser/:id", async (req, res) => {
+  const { id } = req.params;
+  const user = await User_Model.find({ userId: id });
+  try {
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(404).json({ message: "Something went wrong" });
+  }
 });
 
 //--------------
@@ -104,31 +135,36 @@ router.get("/getclient/:id", async (req, res) => {
     res.status(404).json({ message: "Something went wrong" });
   }
 });
-router.get("/getsubforclient/:id", async (req, res) => {
-  const { id } = req.params;
+router.get("/getsubforclient/:email", async (req, res) => {
+  const { email } = req.params;
   try {
-    const allClients = await Subscription_Model.find({ clientId: id });
-    res.status(200).json(allClients);
+    const client = await Client_Model.find({ email: email });
+    const allSubs = await Subscription_Model.find({
+      clientId: client[0]._id,
+    });
+    res.status(200).json(allSubs);
   } catch (error) {
     res.status(404).json({ message: "Something went wrong" });
   }
 });
 
-router.get("/getorderforclient/:id", async (req, res) => {
-  const { id } = req.params;
+router.get("/getorderforclient/:email", async (req, res) => {
+  const { email } = req.params;
   try {
-    const allClients = await Order_Model.find({ clientId: id });
-    res.status(200).json(allClients);
+    const client = await Client_Model.find({ email: email });
+    const allOrders = await Order_Model.find({ clientId: client[0]._id });
+    res.status(200).json(allOrders);
   } catch (error) {
     res.status(404).json({ message: "Something went wrong" });
   }
 });
 
-router.get("/getinvforclient/:id", async (req, res) => {
-  const { id } = req.params;
+router.get("/getinvforclient/:email", async (req, res) => {
+  const { email } = req.params;
   try {
-    const allClients = await Invoice_Model.find({ clientId: id });
-    res.status(200).json(allClients);
+    const client = await Client_Model.find({ email: email });
+    const allInvoices = await Invoice_Model.find({ clientId: client[0]._id });
+    res.status(200).json(allInvoices);
   } catch (error) {
     res.status(404).json({ message: "Something went wrong" });
   }
@@ -155,14 +191,44 @@ router.post("/saveticket", async (req, res) => {
     await newTicket.save();
     res.status(200).json({ message: "Ticket Added" });
   } catch (error) {
+    // console.log(error);
     res.status(404).json({ message: "Something went wrong" });
   }
 });
 
+router.get("/getticketsclient/:email", async (req, res) => {
+  const { email } = req.params;
+  try {
+    const allTickets = await Ticket_Model.find({ toEmail: email });
+    // console.log(allTickets);
+    res.status(200).json(allTickets);
+  } catch (error) {
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
 router.get("/gettickets", async (req, res) => {
   try {
     const allTickets = await Ticket_Model.find({});
     res.status(200).json(allTickets);
+  } catch (error) {
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
+
+router.get("/getticket/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const ticket = await Ticket_Model.findById(id);
+    res.status(200).json(ticket);
+  } catch (error) {
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
+router.delete("/deleteticket/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const ticket = await Ticket_Model.findByIdAndDelete(id);
+    res.status(200).json({ message: "Deleted" });
   } catch (error) {
     res.status(404).json({ message: "Something went wrong" });
   }
@@ -274,6 +340,29 @@ router.get("/filterorder", async (req, res) => {
   }
 });
 
+router.post("/addmessage", async (req, res) => {
+  const messageData = req.body;
+  const order = await Order_Model.findById(messageData.orderId);
+  order.messages.push(messageData);
+  try {
+    await order.save();
+    res.status(200).json({ message: "Tag Added" });
+  } catch (error) {
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
+router.post("/deletemessage", async (req, res) => {
+  const { mes, id } = req.body;
+  const order = await Order_Model.findById(id);
+  order.messages = order.messages.filter((m) => m.id !== mes);
+  try {
+    await order.save();
+    res.status(200).json({ message: "Tag Added" });
+  } catch (error) {
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
+
 //--------------
 //INVOICE
 //--------------
@@ -341,13 +430,13 @@ router.get("/getsub/:id", async (req, res) => {
   }
 });
 
-////
-//TAGS
+//////////
+//TAGS ORDERS
 //////////
 
 router.post("/addtag", async (req, res) => {
   const { tagField, id } = req.body;
-  const newTag = new Tag_Model({ tag: tagField, orderId: id });
+  const newTag = new TagOrders_Model({ tag: tagField, orderId: id });
   console.log(newTag);
   try {
     await newTag.save();
@@ -360,8 +449,23 @@ router.post("/addtag", async (req, res) => {
 router.get("/gettags/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    const allTags = await Tag_Model.find({ orderId: id });
+    const allTags = await TagOrders_Model.find({ orderId: id });
     res.status(200).json(allTags);
+  } catch (error) {
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
+//////////
+//TAGS TICKETS
+//////////
+
+router.post("/addtagtoticket", async (req, res) => {
+  const { tagField, id } = req.body;
+  const ticket = await Ticket_Model.findById(id);
+  ticket.tags.push(tagField);
+  await ticket.save();
+  try {
+    res.status(200).json({ message: "Tag Added" });
   } catch (error) {
     res.status(404).json({ message: "Something went wrong" });
   }
