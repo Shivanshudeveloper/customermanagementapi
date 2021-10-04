@@ -95,6 +95,23 @@ router.post("/saveservice", async (req, res) => {
     res.status(404).json({ message: "Something went wrong" });
   }
 });
+router.post("/editservice", async (req, res) => {
+  const editService = req.body;
+  try {
+    const newService = await Service_Model.findByIdAndUpdate(
+      { _id: editService._id },
+      {
+        name: editService.name,
+        description: editService.description,
+        price: editService.price,
+      },
+      { useFindAndModify: false }
+    );
+    res.status(200).json({ message: "Service Updated" });
+  } catch (error) {
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
 
 //--------------
 //CLIENT
@@ -358,6 +375,29 @@ router.post("/deletemessage", async (req, res) => {
   try {
     await order.save();
     res.status(200).json({ message: "Tag Added" });
+  } catch (error) {
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
+
+router.post("/addmessageticket", async (req, res) => {
+  const messageData = req.body;
+  const order = await Ticket_Model.findById(messageData.orderId);
+  order.chat.push(messageData);
+  try {
+    await order.save();
+    res.status(200).json({ message: "Message Added" });
+  } catch (error) {
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
+router.post("/deletemessageticket", async (req, res) => {
+  const { mes, id } = req.body;
+  const order = await Ticket_Model.findById(id);
+  order.chat = order.chat.filter((m) => m.id !== mes);
+  try {
+    await order.save();
+    res.status(200).json({ message: "Message Deleted" });
   } catch (error) {
     res.status(404).json({ message: "Something went wrong" });
   }

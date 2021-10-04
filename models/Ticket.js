@@ -29,6 +29,7 @@ const ticketSchema = new mongoose.Schema({
     type: Array,
     required: false,
   },
+  chat: { type: Array, required: false },
   createdAt: {
     type: Date,
     default: Date.now,
