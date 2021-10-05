@@ -18,6 +18,24 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  companyName: {
+    type: String,
+    required: false,
+  },
+  companyImage: {
+    type: String,
+    required: false,
+  },
+  messages: {
+    type: Array,
+    required: false,
+    default: [],
+  },
+  tags: {
+    type: Array,
+    required: false,
+    default: [],
+  },
 });
 const user = mongoose.model("user", userSchema);
 module.exports = user;

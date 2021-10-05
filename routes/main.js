@@ -31,13 +31,14 @@ router.post("/register", async (req, res) => {
   const userData = req.body;
   const newUser = new User_Model(userData);
   const email = userData.email;
-  const emailCount = await User_Model.countDocuments({ email });
+  const emailCount = await User_Model.countDocuments({ userEmail: email });
   if (emailCount > 0) res.status(404).json({ message: "Email already exists" });
   else {
     try {
       await newUser.save();
       res.status(200).json({ message: "Service Added" });
     } catch (error) {
+      console.log(error);
       res.status(404).json({ message: "Something went wrong" });
     }
   }
@@ -47,6 +48,107 @@ router.get("/checkuser/:id", async (req, res) => {
   const user = await User_Model.find({ userId: id });
   try {
     res.status(200).json(user);
+  } catch (error) {
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
+
+router.get("/getmessageadmin/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await User_Model.find({ userId: id });
+    res.status(200).json(user[0].messages);
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
+
+router.delete("/deleteadmin/:id", async (req, res) => {
+  const { id } = req.params;
+  await User_Model.findByIdAndDelete({ _id: id });
+  try {
+    res.status(200).json();
+  } catch (error) {
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
+
+router.get("/getadmins", async (req, res) => {
+  const users = await User_Model.find({ admin: true });
+  try {
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
+
+router.post("/changeadminuser/:id", async (req, res) => {
+  const { id } = req.params;
+  const companySettings = req.body;
+  const user = await User_Model.find({ userId: id });
+  const updatedUser = await User_Model.findByIdAndUpdate(
+    { _id: user[0]._id },
+    companySettings,
+    { useFindAndModify: false }
+  );
+  try {
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
+
+router.post("/addmessageadmin/:id", async (req, res) => {
+  const { id } = req.params;
+  const companySettings = req.body;
+  const u = await User_Model.find({ userId: id });
+  const user = u[0];
+  console.log(user);
+  try {
+    if (user.messages.length === 0) user.messages = [companySettings];
+    else user.messages = user.messages.push(companySettings);
+    await user.save();
+    res.status(200).json({ message: "Updated" });
+  } catch (error) {
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
+
+router.get("/gettagadmin/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await User_Model.find({ userId: id });
+    res.status(200).json(user[0].tags);
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
+
+router.post("/addtagadmin/:id", async (req, res) => {
+  const { id } = req.params;
+  const companySettings = req.body;
+  const u = await User_Model.find({ userId: id });
+  const user = u[0];
+  try {
+    if (user.tags.length === 0) user.tags = [companySettings];
+    else user.tags.push(companySettings);
+    await user.save();
+    res.status(200).json({ message: "Updated" });
+  } catch (error) {
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
+
+router.delete("/deletetagadmin/:id/:tag", async (req, res) => {
+  const { id, tag } = req.params;
+  const u = await User_Model.find({ userId: id });
+  const user = u[0];
+  try {
+    user.tags = user.tags.filter((t) => t.tagName !== tag);
+    await user.save();
+    res.status(200).json({ message: "Updated" });
   } catch (error) {
     res.status(404).json({ message: "Something went wrong" });
   }
@@ -91,6 +193,23 @@ router.post("/saveservice", async (req, res) => {
   try {
     await newService.save();
     res.status(200).json({ message: "Service Added" });
+  } catch (error) {
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
+router.post("/editservice", async (req, res) => {
+  const editService = req.body;
+  try {
+    const newService = await Service_Model.findByIdAndUpdate(
+      { _id: editService._id },
+      {
+        name: editService.name,
+        description: editService.description,
+        price: editService.price,
+      },
+      { useFindAndModify: false }
+    );
+    res.status(200).json({ message: "Service Updated" });
   } catch (error) {
     res.status(404).json({ message: "Something went wrong" });
   }
@@ -358,6 +477,29 @@ router.post("/deletemessage", async (req, res) => {
   try {
     await order.save();
     res.status(200).json({ message: "Tag Added" });
+  } catch (error) {
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
+
+router.post("/addmessageticket", async (req, res) => {
+  const messageData = req.body;
+  const order = await Ticket_Model.findById(messageData.orderId);
+  order.chat.push(messageData);
+  try {
+    await order.save();
+    res.status(200).json({ message: "Message Added" });
+  } catch (error) {
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
+router.post("/deletemessageticket", async (req, res) => {
+  const { mes, id } = req.body;
+  const order = await Ticket_Model.findById(id);
+  order.chat = order.chat.filter((m) => m.id !== mes);
+  try {
+    await order.save();
+    res.status(200).json({ message: "Message Deleted" });
   } catch (error) {
     res.status(404).json({ message: "Something went wrong" });
   }
