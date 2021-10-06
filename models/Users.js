@@ -36,6 +36,26 @@ const userSchema = new mongoose.Schema({
     required: false,
     default: [],
   },
+  emailSettings: {
+    type: Object,
+    required: false,
+    default: {},
+  },
+  templates: {
+    type: Array,
+    required: false,
+    default: [],
+  },
+  contactForms: {
+    type: Array,
+    required: false,
+    default: [],
+  },
+  team: {
+    type: Array,
+    required: false,
+    default: [],
+  },
 });
 const user = mongoose.model("user", userSchema);
 module.exports = user;

@@ -104,7 +104,6 @@ router.post("/addmessageadmin/:id", async (req, res) => {
   const companySettings = req.body;
   const u = await User_Model.find({ userId: id });
   const user = u[0];
-  console.log(user);
   try {
     if (user.messages.length === 0) user.messages = [companySettings];
     else user.messages = user.messages.push(companySettings);
@@ -114,7 +113,45 @@ router.post("/addmessageadmin/:id", async (req, res) => {
     res.status(404).json({ message: "Something went wrong" });
   }
 });
+router.post("/addtempemail/:id", async (req, res) => {
+  const { id } = req.params;
+  const note = req.body;
+  const u = await User_Model.find({ userId: id });
+  const user = u[0];
+  try {
+    if (user.templates.length === 0) user.templates = [note];
+    else user.templates = user.templates.push(note);
+    console.log(user);
+    await user.save();
+    res.status(200).json({ message: "Updated" });
+  } catch (error) {
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
+router.post("/saveemailsettings/:id", async (req, res) => {
+  const { id } = req.params;
+  const emailSettings = req.body;
+  const u = await User_Model.find({ userId: id });
+  const user = u[0];
+  try {
+    user.emailSettings = emailSettings;
+    await user.save();
+    res.status(200).json({ message: "Updated" });
+  } catch (error) {
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
 
+router.get("/getemailsettings/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await User_Model.find({ userId: id });
+    res.status(200).json(user[0].emailSettings);
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
 router.get("/gettagadmin/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -122,6 +159,31 @@ router.get("/gettagadmin/:id", async (req, res) => {
     res.status(200).json(user[0].tags);
   } catch (error) {
     console.log(error);
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
+router.get("/admingetcontact/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await User_Model.find({ userId: id });
+    res.status(200).json(user[0].contactForms);
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
+
+router.post("/adminsubmitcontact/:id", async (req, res) => {
+  const { id } = req.params;
+  const formData = req.body;
+  const u = await User_Model.find({ userId: id });
+  const user = u[0];
+  try {
+    if (user.contactForms.length === 0) user.contactForms = [formData];
+    else user.contactForms.push(formData);
+    await user.save();
+    res.status(200).json({ message: "Updated" });
+  } catch (error) {
     res.status(404).json({ message: "Something went wrong" });
   }
 });
@@ -147,6 +209,32 @@ router.delete("/deletetagadmin/:id/:tag", async (req, res) => {
   const user = u[0];
   try {
     user.tags = user.tags.filter((t) => t.tagName !== tag);
+    await user.save();
+    res.status(200).json({ message: "Updated" });
+  } catch (error) {
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
+
+router.get("/customergetteam/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await User_Model.find({ userId: id });
+    res.status(200).json(user[0].team);
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
+
+router.post("/customeraddteam/:id", async (req, res) => {
+  const { id } = req.params;
+  const formData = req.body;
+  const u = await User_Model.find({ userId: id });
+  const user = u[0];
+  try {
+    if (user.team.length === 0) user.team = [formData];
+    else user.team.push(formData);
     await user.save();
     res.status(200).json({ message: "Updated" });
   } catch (error) {
