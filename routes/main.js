@@ -701,4 +701,28 @@ router.post("/addtagtoticket", async (req, res) => {
   }
 });
 
+//////////////
+///NOTIFICARION
+//////////////
+
+// db.users.find().limit(1).sort({$natural:-1})
+router.get("/getlatestsub", async (req, res) => {
+  try {
+    const sub = await Subscription_Model.find().limit(1).sort({ $natural: -1 });
+    res.status(200).json(sub);
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
+
+router.get("/getlatestorder", async (req, res) => {
+  try {
+    const sub = await Order_Model.find().limit(1).sort({ $natural: -1 });
+    res.status(200).json(sub);
+  } catch (error) {
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
+
 module.exports = router;
