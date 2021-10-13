@@ -616,6 +616,23 @@ router.get("/getinvoices", async (req, res) => {
     res.status(404).json({ message: "Something went wrong" });
   }
 });
+router.get("/getinvoicesbydate", async (req, res) => {
+  const { time } = req.query;
+  try {
+    // prettier-ignore
+    const allInvoices = await Invoice_Model.find(
+      {
+          "createdAt": 
+          {
+              $gte: new Date((new Date().getTime() - (Number(time) * 24 * 60 * 60 * 1000)))
+          }
+      }
+      ).sort({ "createdAt": -1 })
+    res.status(200).json(allInvoices);
+  } catch (error) {
+    res.status(404).json({ message: "Something went wrong" });
+  }
+});
 router.get("/getinvoice/:id", async (req, res) => {
   const { id } = req.params;
   try {
